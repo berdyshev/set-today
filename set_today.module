@@ -1,5 +1,12 @@
 <?php
+/**
+ * @file
+ * Solves the challenge http://moduleoff.com/contest/add-link-every-article-node-updates-date-field-today-using-ajax
+ */
 
+/**
+ * Implements hook_menu().
+ */
 function set_today_menu() {
   $items['set_today/%node'] = array(
     'page callback' => 'set_today_update_date',
