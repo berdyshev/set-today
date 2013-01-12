@@ -1,0 +1,82 @@
+<?php
+
+function set_today_menu() {
+  $items['set_today/%node'] = array(
+    'page callback' => 'set_today_update_date',
+    'page arguments' => array(1),
+    'delivery callback' => 'ajax_deliver',
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function set_today_field_extra_fields() {
+  $extra['node']['article'] = array(
+    'display' => array(
+      'set_today_link' => array(
+        'label' => t('Set Today'),
+        'description' => t('Set Today date'),
+        'weight' => 10,
+      ),
+    ),
+  );
+  return $extra;
+}
+
+/**
+ * Implements hook_node_view().
+ *
+ * @param $node
+ * @param $view_mode
+ * @param $langcode
+ */
+function set_today_node_view($node, $view_mode, $langcode) {
+  if ($view_mode != 'full') {
+    return;
+  }
+
+  $node->content['set_today_msgs'] = array(
+    '#markup' => '<div id="set-today-msgs"></div>',
+  );
+  $node->content['set_today'] = array(
+    '#type' => 'link',
+    '#title' => t('Set Today'),
+    '#href' => '',
+    '#ajax' => array(
+      'path' => 'set_today/' . $node->nid,
+      'event' => 'click',
+      'wrapper' => 'set-today-msgs',
+    ),
+    '#attributes' => array(
+      'class' => 'button',
+    ),
+  );
+}
+
+/**
+ * Page callback for ajax updating date field.
+ *
+ * @param $node_wrapped
+ * @return array
+ */
+function set_today_update_date($node) {
+  $node_wrapped = entity_metadata_wrapper('node', $node);
+  $node_wrapped->field_date->set(time());
+  $node_wrapped->save();
+  drupal_set_message(t('Date updated to @date',
+    array('@date' => date('d M Y', $node_wrapped->field_date->value()))));
+
+
+  $commands = array();
+  $commands[] = ajax_command_append('#set-today-msgs',
+    theme('status_messages', array('display' => 'status')));
+
+  $output = field_view_field('node', $node, 'field_date');
+  $commands[] = ajax_command_replace('.field-name-field-date', render($output));
+
+  return array('#type' => 'ajax', '#commands' => $commands);
+}

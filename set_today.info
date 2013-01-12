@@ -1,0 +1,3 @@
+name = Set Today
+description = AJAX link to update date field on article to today.
+core = 7.x
